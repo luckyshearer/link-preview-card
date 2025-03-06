@@ -5,6 +5,7 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
+import { ref } from "lit/directives/ref.js";
 
 /**
  * `link-preview-card-two`
@@ -21,10 +22,17 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
   constructor() {
     super();
     this.title = "";
+    this.jsonTitle = "";
+    this.description = "";
+    this.url = "";
+    this.image = "";
+    this.input = "";
     this.t = this.t || {};
     this.t = {
       ...this.t,
-      title: "Title",
+      // title: "Title",
+      // jsonTitle: "JSON Title",
+      examineButton: "Examine Website",
     };
     this.registerLocalization({
       context: this,
@@ -40,6 +48,11 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     return {
       ...super.properties,
       title: { type: String },
+      jsonTitle: { type: String },
+      description: { type: String },
+      url: { type: String, reflect: true },
+      image: { type: String },
+      input: { type: String },
     };
   }
 
@@ -63,11 +76,62 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     `];
   }
 
+  inputBox(e) {
+    this.input = e.target.value;
+  }
+
+  async fetch() {
+    if(this.input) {
+      this.getData(this.input);
+    }
+  }
+
+  async getData(link) {
+    const url = `https://open-apis.hax.cloud/api/services/website/metadata?q=${link}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+  
+      const json = await response.json();
+      console.log(json.data);
+      // document.querySelector('#here').innerHTML = JSON.stringify(json.data, null, 2);
+      // document.querySelector('#there').innerHTML = json.data["og:site_name"];
+      this.title = json.data['og:title'];
+      this.jsonTitle = json.data['og:jsonTitle'];
+      this.description = json.data['og:description'];
+      this.image = json.data['og:image'];
+      console.log(json.data.url);
+      console.log(this.jsonTitle);
+      // if (json.data['twitter:card']) {
+        
+      // }
+      console.log(json.data['url']);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+  
+  //getData("https://hax.psu.edu");
+
+
   // Lit render the HTML
   render() {
     return html`
 <div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
+  <textArea
+    .value=${this.input}
+    @input="${this.inputBox}"
+    placeholder="Enter a URL"
+    ></textArea>
+  <button @click="${this.fetch}">${this.t.examineButton}</button>
+  <h3><span>${this.t.title}</span> ${this.title}</h3>
+  <h3><span>${this.t.jsonTitle}</span> ${this.jsonTitle}</h3>
+  <p>${this.description}</p>
+  <img src="${this.image}" alt="${this.title}" />
+
+  <a href="${this.url}" target="_blank">${this.url}</a>
   <slot></slot>
 </div>`;
   }
