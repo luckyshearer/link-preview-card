@@ -27,6 +27,8 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     this.url = "";
     this.image = "";
     this.input = "";
+    this.loading = false;
+
     this.t = this.t || {};
     this.t = {
       ...this.t,
@@ -53,6 +55,7 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
       url: { type: String, reflect: true },
       image: { type: String },
       input: { type: String },
+      loading: { type: Boolean },
     };
   }
 
@@ -70,9 +73,10 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
         margin: var(--ddd-spacing-2);
         padding: var(--ddd-spacing-4);
       }
-      h3 span {
+      /* h3 span {
         font-size: var(--link-preview-card-two-label-font-size, var(--ddd-font-size-s));
-      }
+      } */
+      
     `];
   }
 
@@ -82,7 +86,7 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
 
   async fetch() {
     if(this.input) {
-      this.getData(this.input);
+        this.getData(this.input);
     }
   }
 
