@@ -90,6 +90,15 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     }
   }
 
+  isValidURL(string) {
+    try {
+      new URL(string);
+      return true
+    } catch (error) {
+      return false;
+    }
+  }
+
   async getData(link) {
     const url = `https://open-apis.hax.cloud/api/services/website/metadata?q=${link}`;
     try {
