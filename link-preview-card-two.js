@@ -23,10 +23,11 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     this.title = "";
     this.href = "";
     this.description = "";
-    this.link = "";
+    this.url = "";
     this.image = "";
     this.color = "";
     this.loading = false;
+    this.error = false;
 
 
     this.registerLocalization({
@@ -45,10 +46,11 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
       title: { type: String },
       href: { type: String },
       description: { type: String },
-      link: { type: String},
+      url: { type: String},
       image: { type: String },
       color: { type: String },
-      loading: { type: Boolean, reflect: true, attribute: "loading-state" },
+      loading: { type: Boolean, reflect: true },
+      error: { type: Boolean },
     };
   }
 
@@ -56,56 +58,52 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
   static get styles() {
     return [super.styles,
     css`
-    :root {
-      --ddd-primary-0: #000;
-      --ddd-primary-1: #333;
-      --ddd-primary-2: #005A9C;
-      --ddd-primary-25: #FF69B4;
-    }
-
       :host {
         display: inline-block;
-        /* color: var(--color); */
+        color: var(--color);
         background-color: var(--ddd-color-default-gray);
         border-radius: 10px;
         border: solid white;
         padding: 6px;
-        max-width: 400px;
+        width: 400px;
       }
 
       .preview {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        width: 400px;
+        height: 400px;
+        background-color: darkgrey;
+
       }
 
       img {
-        display: block;
-        max-width: 80%;
+        width: 160px;
         height: auto;
+        object-fit: cover;
         border-radius: 6px;
-        margin: 0px auto;
         border: 4px solid var(--color);
       }
 
       .content {
-        width: 100%;
+        position: relative;
+        max-width: 420px;
         display: flex;
         flex-direction: column;
         align-items: center;
+
+
       }
 
 
       .title {
         font-weight: bold;
-        font-size: 1em;
+        font-size: 24px;
         margin: 15px 0px;
-        color: var(--ddd-color-primary);
+        color: var(--color);
 
       }
 
       details {
-        border: 4px solid lightsalmon;
+        border: 4px var(--color) solid;
         border-radius: 8px;
         text-align: center;
         padding: 8px;
@@ -122,8 +120,8 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
       .description {
         text-align: center;
         margin: 10px 10px;
-        color: var(--ddd-color-primary);
-        border: 4px solid var(--ddd-color-primary);
+        color: var(--color);
+        border: 4px solid var(--color);
       }
 
       .description:hover {
@@ -144,15 +142,13 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
         background-color: var(--ddd-color-default-gray);
       }
 
-      .loading-state {
+      .loading {
         margin: var(--ddd-spacing-5) auto;
         border: var(--ddd-border-lg);
-        border-color: var(--ddd-color-default-white);
         border-top: var(--ddd-border-lg);
-        border-top-color: var(--ddd-color-primary);
-        border-radius: var(--ddd-radius-xl);
-        width: 50px;
-        height: 50px;
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
         animation: spin 2s linear infinite;
       }
 
@@ -170,6 +166,12 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
           flex-direction: column;
         }
       }
+
+      .loader{
+        width: 50px;
+        height: 50px;
+        margin: var(--ddd-spacing-5) auto;
+      }
       
     `];
   }
@@ -182,6 +184,7 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
 
   async fetch(link) {
     this.loading = true; 
+    this.error = null;
     const url = `https://open-apis.hax.cloud/api/services/website/metadata?q=${link}`;
     try {
       const response = await fetch(url);
@@ -197,10 +200,11 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
       this.color = json.data["theme-color"] || this.defaultColor(); 
     } catch (error) {
       console.error("Error:", error);
+      this.error = "failed to load preview";
       this.title = "Error";
-      this.description = "";
+      this.description = "failed to load";
       this.image = "";
-      this.url = "";
+      this.url = link;
       this.color = this.defaultColor();
     } finally {
       this.loading = false;
@@ -230,7 +234,9 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
     return html`
     <div class="preview" part="preview">
       ${this.loading 
-        ? html`<div class="loading-state" part="loading-state"></div>` 
+        ? html`<div class="loading"></div>` 
+        : this.error
+        ? html`<p class="error">${this.error}</p>`
         : html`
           ${this.image ? html`<img src="${this.image}" alt="" @error="${this.imageError}" part="image" />` : ''}
         <div class = "content" part="content">
@@ -242,7 +248,8 @@ export class LinkPreviewCardTwo extends DDDSuper(I18NMixin(LitElement)) {
           <a href="${this.url}" target="_blank" class="url" part="url">Open Site</a>
         </div>
         `} 
-</div>`;
+</div>
+`;
   }
 
   /**
